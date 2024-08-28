@@ -15,34 +15,38 @@ public class Cadeteria
         cadetes = Cadetes;
     }
 
-    public void AsignarPedidos(Pedido pedido)
+    public Cadete AsignarPedidos(Pedido pedido)
     {
-        int menosPedidos = int.MaxValue;
+        int menosPedidos = 100;
         Cadete cadeteMenosPedidos = cadetes[0];
         foreach (var cadete in cadetes)
         {
-            if (cadete.Pedidos.Count(p => p.Estado == Estados.EnCamino) <= menosPedidos)
+            if (cadete.Pedidos.Count(p => p.Estado != Estados.Entregado) <= menosPedidos)
             {
                 cadeteMenosPedidos = cadete;
+                menosPedidos = cadete.Pedidos.Count;
             }
         }
         cadeteMenosPedidos.Pedidos.Add(pedido);
+        return cadeteMenosPedidos;
     }
 
-    public void ReasignarPedidos(int nro)
+    public Cadete ReasignarPedidos(int nro)
     {
         var cadeteConPedido = cadetes.Where(c => c.Pedidos.Any(p => p.Nro == nro)).ToList();
+        Cadete cadeteMenosPedidos = null;
         if (cadeteConPedido.Count != 0)
         {
             var pedidoAReasignar = cadeteConPedido[0].DarDeBajaPedido(nro);
             var cadetesDisponibles = cadetes.Where(c => c.Nombre != cadeteConPedido[0].Nombre).ToList();
             int menosPedidos = int.MaxValue;
-            Cadete cadeteMenosPedidos = cadetes[0];
+            cadeteMenosPedidos = cadetes[0];
             foreach (var cadete in cadetesDisponibles)
             {
                 if (cadete.Pedidos.Count(p => p.Estado == Estados.EnCamino) <= menosPedidos)
                 {
                     cadeteMenosPedidos = cadete;
+                    menosPedidos = cadete.Pedidos.Count;
                 }
             }
             cadeteMenosPedidos.Pedidos.Add(pedidoAReasignar);
@@ -50,6 +54,8 @@ public class Cadeteria
         {
             Console.WriteLine("El número ingresado no se corresponde con ningún pedido");
         }
+
+        return cadeteMenosPedidos;
     }
 
     public void CambiarEstadoDelPedido(int nro)
@@ -70,21 +76,23 @@ public class Cadeteria
             }
         }else
         {
-            Console.WriteLine("El número ingresado no se corresponde con ningún pedido"); 
+            Console.WriteLine("El número ingresado no se corresponde con ningún pedido asignado."); 
+            Console.WriteLine("Presiona cualquier tecla para continuar.");
+            Console.ReadKey();
         }
 
     }
 
     public void MostrarInforme()
     {
-        int totalEnvios = 0;
+        float totalEnvios = 0;
         Console.WriteLine("Informe de los cadetes:");
         foreach (var cadete in cadetes)
         {
             Console.WriteLine($"Nombre: {cadete.Nombre} || Cantidad de pedidos realizados: {cadete.CantidadDePedidosCompletados()} || Monto ganado: ${cadete.JornalACobrar()}");
             totalEnvios = totalEnvios + cadete.CantidadDePedidosCompletados();
         }
-        float promedioEnviosXCadete = totalEnvios/cadetes.Count();
+        float promedioEnviosXCadete = totalEnvios/(float)cadetes.Count;
         Console.WriteLine("\nInforme general:");
         Console.WriteLine($"Cantidad total de envios: {totalEnvios}");
         Console.WriteLine($"Promedio de envios por cadete: {promedioEnviosXCadete}");

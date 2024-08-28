@@ -22,13 +22,13 @@ public class HelperDeCSV
         return cadetes;
     }
 
-    public static Cadeteria LeerCadeteria(string nombreArchivoCadeteria, string nombreArchivoCadetes)
+    public static Cadeteria LeerCadeteria(string nombreArchivoCadeteria)
     {
         string ruta = "csv/" + nombreArchivoCadeteria;
         string[] lineas = File.ReadAllLines(ruta);
         var datos = lineas[0].Split(';');
 
-        Cadeteria cadeteria = new Cadeteria(datos[0], datos[1], LeerCadetes(nombreArchivoCadetes));
+        Cadeteria cadeteria = new Cadeteria(datos[0], datos[1], new List<Cadete> ());
 
         return cadeteria;
     }
