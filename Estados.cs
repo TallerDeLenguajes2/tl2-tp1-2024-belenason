@@ -1,4 +1,4 @@
-enum Estados
+public enum Estados
 {
     Preparación,
     EnCamino,
