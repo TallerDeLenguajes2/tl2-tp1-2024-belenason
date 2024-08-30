@@ -28,7 +28,7 @@ public class HelperDeCSV
         string[] lineas = File.ReadAllLines(ruta);
         var datos = lineas[0].Split(';');
 
-        Cadeteria cadeteria = new Cadeteria(datos[0], datos[1]);
+        Cadeteria cadeteria = new Cadeteria(datos[0], datos[1], new List<Cadete>());
 
         return cadeteria;
     }

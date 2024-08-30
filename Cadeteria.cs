@@ -6,16 +6,15 @@ public class Cadeteria
     private List<Pedido> pedidos;
     public string Nombre {get => nombre;}
     public string Telefono {get => telefono;}
-    public List<Cadete> Cadetes {get => cadetes; set => cadetes = value;}
+    public List<Cadete> Cadetes {get => cadetes;}
     public List<Pedido> Pedidos {get => pedidos; set => pedidos = value;}
 
-    public Cadeteria(string Nombre, string Telefono)
+    public Cadeteria(string Nombre, string Telefono, List<Cadete> Cadetes)
     {
         nombre = Nombre;
         telefono = Telefono;
         cadetes = Cadetes;
         pedidos = new List<Pedido> ();
-        cadetes = new List<Cadete> ();
     }
 
     private float JornalACobrar(int idCadete)
@@ -44,7 +43,7 @@ public class Cadeteria
         Cadete cadeteMenosPedidos = cadetes[0];
         foreach (var cadete in cadetes)
         {
-            var PedidosCadete = Pedidos.Where(p => p.Cadete.Id == cadete.Id).ToList();
+            var PedidosCadete = Pedidos.Where(p => p.Cadete == cadete).ToList();
             int cantEntregada = PedidosCadete.Count(p => p.Estado != Estados.Entregado);
             if (cantEntregada <= menosPedidos)
             {
@@ -58,16 +57,16 @@ public class Cadeteria
 
     public Cadete ReasignarPedidos(int nro)
     {
-        var pedidoAReasignar = Pedidos.Where(p => p.Nro == nro).ToList();
+        var pedidoAReasignar = Pedidos.Where(p => p.Nro == nro && p.Estado != Estados.Entregado && p.Cadete != null).ToList();
         Cadete cadeteMenosPedidos = null;
         if (pedidoAReasignar.Count != 0)
         {
-            var cadetesDisponibles = cadetes.Where(c => c.Nombre != pedidoAReasignar[0].Cadete.Nombre).ToList();
+            var cadetesDisponibles = cadetes.Where(c => c != pedidoAReasignar[0].Cadete).ToList();
             int menosPedidos = int.MaxValue;
             cadeteMenosPedidos = cadetesDisponibles[0];
             foreach (var cadete in cadetesDisponibles)
             {
-                var PedidosCadete = Pedidos.Where(p => p.Cadete.Id == cadete.Id).ToList();
+                var PedidosCadete = Pedidos.Where(p => p.Cadete == cadete).ToList();
                 int cantEntregada = PedidosCadete.Count(p => p.Estado != Estados.Entregado);
                 if (cantEntregada <= menosPedidos)
                 {
