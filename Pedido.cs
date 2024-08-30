@@ -4,10 +4,11 @@
     private string obs;
     private Cliente cliente;
     private Estados estado;
-
+    private Cadete cadete;
     public int Nro {get => nro;}
     public string Obs { get => obs;}
     public Estados Estado { get => estado; set => estado = value; }
+    public Cadete Cadete { get => cadete; set => cadete = value; }
 
     public Pedido(int Nro, string Obs, string nombre, string direccion, string telefono, string referencias)
     {
@@ -15,6 +16,7 @@
         obs = Obs;
         Estado = Estados.Preparación;
         cliente = new Cliente(nombre, direccion, telefono, referencias);
+        cadete = null;
     }
 
     public void VerDireccionCliente()

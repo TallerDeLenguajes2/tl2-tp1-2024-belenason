@@ -3,13 +3,9 @@ string nombreArchivoCadeteria = "Cadeteria.csv";
 if (HelperDeCSV.Existe(nombreArchivoCadeteria) && HelperDeCSV.Existe(nombreArchivoCadetes))
 {
     var cadeteria = HelperDeCSV.LeerCadeteria(nombreArchivoCadeteria);
-    foreach (var cadete in HelperDeCSV.LeerCadetes(nombreArchivoCadetes))
-    {
-        cadeteria.Cadetes.Add(cadete);
-    }
+    cadeteria.Cadetes = HelperDeCSV.LeerCadetes(nombreArchivoCadetes);
 
     int nroPedido = 0;
-    var pedidosSinAsignar = new List<Pedido>();
     int seleccion;
     
     do
@@ -50,21 +46,33 @@ if (HelperDeCSV.Existe(nombreArchivoCadeteria) && HelperDeCSV.Existe(nombreArchi
                 } while (string.IsNullOrWhiteSpace(observaciones) || string.IsNullOrWhiteSpace(nombreCliente) || string.IsNullOrWhiteSpace(direccionCliente) || string.IsNullOrWhiteSpace(telefonoCliente));
 
                 var pedidoNuevo = new Pedido(nroPedido, observaciones, nombreCliente, direccionCliente, telefonoCliente, datosReferenciaDireccion);
-                pedidosSinAsignar.Add(pedidoNuevo);
+                cadeteria.Pedidos.Add(pedidoNuevo);
                 break;
 
             case 1:
                 Console.Clear();
+                var pedidosSinAsignar = cadeteria.Pedidos.Where(p => p.Cadete == null).ToList();
                 if(pedidosSinAsignar.Count != 0)
                 {
-                    Cadete cadeteAsignado = cadeteria.AsignarPedidos(pedidosSinAsignar[0]);
+                    List<string> idPedidosLista = new List<string>();
+                    foreach (var pedido in pedidosSinAsignar)
+                    {
+                        idPedidosLista.Add(pedido.Nro.ToString());
+                    }
+
+                    string[] idPedidos = idPedidosLista.ToArray();
+                    var menuPedidos = new Menu("Seleccione el pedido al cual desea asignarle un cadete", idPedidos);
+                    int selec = menuPedidos.MenuDisplay();
+                    
+                    var pedidoSeleccionado = cadeteria.Pedidos.FirstOrDefault(p => p.Nro.ToString() == idPedidos[selec]);
+                    Cadete cadeteAsignado = cadeteria.AsignarPedidos(pedidoSeleccionado);
+
                     Console.WriteLine("Listo!\n");
                     Console.WriteLine($"El pedido con la siguiente información ha sido asignado al cadete {cadeteAsignado.Nombre}:  ");
                     Console.WriteLine($"Nro de pedido: {pedidosSinAsignar[0].Nro}");
                     Console.WriteLine($"Observaciones: {pedidosSinAsignar[0].Obs}");
                     Console.WriteLine($"Estado: {pedidosSinAsignar[0].Estado}");
                     pedidosSinAsignar[0].VerDatosCliente();
-                    pedidosSinAsignar.RemoveAt(0);
                 }else
                 {
                     Console.WriteLine("No hay pedidos para asignar");
@@ -90,36 +98,34 @@ if (HelperDeCSV.Existe(nombreArchivoCadeteria) && HelperDeCSV.Existe(nombreArchi
                 Console.WriteLine("--- PEDIDOS DISPONIBLES PARA REASIGNAR ---");
                 string ingreso;
                 int numPedido;
-                foreach (var cadete in cadeteria.Cadetes)
+                int cantPedidosDispReasig = cadeteria.Pedidos.Count(p => p.Estado != Estados.Entregado);
+                if (cantPedidosDispReasig != 0)
                 {
-                    Console.WriteLine($"Cadete: {cadete.Nombre}");
-                    var pedidosSinEntregar = cadete.Pedidos.Where(p => p.Estado != Estados.Entregado).ToList();
-                    if(pedidosSinEntregar.Count != 0)
+                    foreach (var pedido in cadeteria.Pedidos.Where(p => p.Estado != Estados.Entregado).ToList())
                     {
-                        foreach (var pedido in pedidosSinEntregar)
-                        {
-                            Console.WriteLine($"Nro de pedido: {pedido.Nro}");
-                            Console.WriteLine($"Observaciones: {pedido.Obs}");
-                            Console.WriteLine($"Estado: {pedido.Estado}");
-                            pedido.VerDatosCliente();
-                            Console.WriteLine();
-                        }          
-                    }else
-                    {
-                        Console.WriteLine("El cadete no tiene pedidos sin entregar");
+                        Console.WriteLine($"Nro de pedido: {pedido.Nro}");
+                        Console.WriteLine($"Cadete: {pedido.Cadete}");
+                        Console.WriteLine($"Observaciones: {pedido.Obs}");
+                        Console.WriteLine($"Estado: {pedido.Estado}");
+                        pedido.VerDatosCliente();
+                        Console.WriteLine();
                     }
-                }
-                do
+                    do
+                    {
+                        Console.Write("\nIngrese el numero del pedido que desea reasignar:");
+                        ingreso = Console.ReadLine();
+                    } while (!int.TryParse(ingreso, out numPedido));
+                    Cadete cadeteReasignado = cadeteria.ReasignarPedidos(numPedido);
+                    if (cadeteReasignado != null)
+                    {
+                        Console.WriteLine($"El pedido ha sido correctamente asignado al cadete {cadeteReasignado.Nombre}");
+                    }
+                } else
                 {
-                    Console.Write("\nIngrese el numero del pedido que desea reasignar:");
-                    ingreso = Console.ReadLine();
-                } while (!int.TryParse(ingreso, out numPedido));
-                Cadete cadeteReasignado = cadeteria.ReasignarPedidos(numPedido);
-                if (cadeteReasignado != null)
-                {
-                    Console.WriteLine($"El pedido ha sido correctamente asignado al cadete {cadeteReasignado.Nombre}");
+                    Console.WriteLine("No hay pedidos disponibles para reasignar");
                 }
                 break;
+    
             case 4:
                 Console.Clear();
                 Console.WriteLine("Final de Jornada-Informe");
