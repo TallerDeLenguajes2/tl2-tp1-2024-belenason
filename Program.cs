@@ -1,12 +1,46 @@
-string nombreArchivoCadetes = "Cadetes.csv";
-string nombreArchivoCadeteria = "Cadeteria.csv";
-if (HelperDeCSV.Existe(nombreArchivoCadeteria) && HelperDeCSV.Existe(nombreArchivoCadetes))
+string nombreArchivoCadetes = "Cadetes";
+string nombreArchivoCadeteria = "Cadeteria";
+
+var menuAccesoDatos = new Menu("Desea acceder a los datos mediante un archivo:", ["JSON", "CSV"]);
+int formaAccesoDatos = menuAccesoDatos.MenuDisplay();
+
+string tipoArchivo;
+int existe = 0;
+Cadeteria cadeteria = null;
+switch (formaAccesoDatos)
 {
-    var cadeteria = HelperDeCSV.LeerCadeteria(nombreArchivoCadeteria);
-    foreach (var cadete in HelperDeCSV.LeerCadetes(nombreArchivoCadetes))
-    {
-        cadeteria.Cadetes.Add(cadete);
-    }
+    case 0:
+        tipoArchivo = "json";
+        if (AccesoADatos.Existe(nombreArchivoCadeteria+"."+tipoArchivo, tipoArchivo))
+        {
+            existe = 1;
+            var AccesoJson =  new AccesoJSON();
+            cadeteria = AccesoJson.LeerCadeteria(nombreArchivoCadeteria+".json");
+            foreach (var cadete in AccesoJson.LeerCadetes(nombreArchivoCadetes+".json"))
+            {
+                cadeteria.Cadetes.Add(cadete);
+            }
+        }
+        
+        break;
+    case 1:
+        tipoArchivo = "csv";
+        if (AccesoADatos.Existe(nombreArchivoCadeteria+"."+tipoArchivo, tipoArchivo))
+        {
+            existe = 1;
+            var AccesoCsv =  new AccesoCSV();
+            cadeteria = AccesoCsv.LeerCadeteria(nombreArchivoCadeteria+".csv");
+            foreach (var cadete in AccesoCsv.LeerCadetes(nombreArchivoCadetes+".csv"))
+            {
+                cadeteria.Cadetes.Add(cadete);
+            }
+        }
+        break;
+
+}
+
+if (existe == 1 && cadeteria != null && cadeteria.Cadetes != null)
+{
 
     int nroPedido = 0;
     int seleccion;
