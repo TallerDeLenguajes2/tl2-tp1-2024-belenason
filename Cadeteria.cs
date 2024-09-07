@@ -17,6 +17,11 @@ public class Cadeteria
         pedidos = new List<Pedido> ();
     }
 
+    public void AsignarCadetes(List<Cadete> cadetes)
+    {
+        this.cadetes = cadetes; 
+    }
+
     private float JornalACobrar(int idCadete)
     {
         float monto = CantEntregasCadete(idCadete)*500;

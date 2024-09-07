@@ -2,9 +2,8 @@ using System.Text.Json;
 
 public abstract class AccesoADatos
 {
-    public static bool Existe(string nombreArchivo, string tipoArchivo)
+    public static bool Existe(string ruta)
     {
-        string ruta = tipoArchivo+"/"+nombreArchivo;
         return File.Exists(ruta);
     }
 
@@ -19,7 +18,7 @@ public class AccesoCSV : AccesoADatos
 
     public override List<Cadete> LeerCadetes(string nombreArchivo)
     {
-        string ruta = "csv/" + nombreArchivo;
+        string ruta = "csv/" + nombreArchivo + ".csv";
         List<Cadete> cadetes = new List<Cadete>();
 
         string[] lineas = File.ReadAllLines(ruta);
@@ -35,7 +34,7 @@ public class AccesoCSV : AccesoADatos
 
     public override Cadeteria LeerCadeteria(string nombreArchivoCadeteria)
     {
-        string ruta = "csv/" + nombreArchivoCadeteria;
+        string ruta = "csv/" + nombreArchivoCadeteria + ".csv";
         string[] lineas = File.ReadAllLines(ruta);
         var datos = lineas[0].Split(';');
 
@@ -52,7 +51,7 @@ public class AccesoJSON : AccesoADatos
     {
         try
         {
-            string jsonCadetes = File.ReadAllText("json/"+nombreArchivo);
+            string jsonCadetes = File.ReadAllText("json/"+nombreArchivo+".json");
             return JsonSerializer.Deserialize<List<Cadete>>(jsonCadetes);
         }
         catch (FileNotFoundException)
@@ -65,7 +64,7 @@ public class AccesoJSON : AccesoADatos
     {
         try
         {
-            string jsonCadeteria = File.ReadAllText("json/"+nombreArchivoCadeteria);
+            string jsonCadeteria = File.ReadAllText("json/"+nombreArchivoCadeteria+".json");
             return JsonSerializer.Deserialize<Cadeteria>(jsonCadeteria);
         }
         catch (FileNotFoundException)
