@@ -9,7 +9,7 @@ public class Cadeteria
     public List<Cadete> Cadetes {get => cadetes;}
     public List<Pedido> Pedidos {get => pedidos; set => pedidos = value;}
 
-    public Cadeteria(string Nombre, string Telefono, List<Cadete> Cadetes)
+    public Cadeteria(string Nombre, string Telefono)
     {
         nombre = Nombre;
         telefono = Telefono;
@@ -17,18 +17,31 @@ public class Cadeteria
         pedidos = new List<Pedido> ();
     }
 
+    private Pedido CrearPedido(string[] informacionPedido)
+    {
+        int numPedido = Pedidos.Count + 1;
+        Pedido pedidoNuevo = new Pedido(numPedido, informacionPedido[0], informacionPedido[1], informacionPedido[2], informacionPedido[3], informacionPedido[4]);
+        return pedidoNuevo;
+    }
+
+    public void GuardarPedido(string[] informacionPedido)
+    {
+        Pedido pedido = CrearPedido(informacionPedido);
+        Pedidos.Add(pedido);
+    }
+
     public void AsignarCadetes(List<Cadete> cadetes)
     {
         this.cadetes = cadetes; 
     }
 
-    private float JornalACobrar(int idCadete)
+    public float JornalACobrar(int idCadete)
     {
         float monto = CantEntregasCadete(idCadete)*500;
         return monto;
     }
 
-    private int CantEntregasCadete(int idCadete)
+    public int CantEntregasCadete(int idCadete)
     {
         var PedidosCadeteAConsultar = Pedidos.Where(p => p.Cadete.Id == idCadete).ToList();
         int cantEntregada = PedidosCadeteAConsultar.Count(p => p.Estado == Estados.Entregado);
@@ -37,12 +50,12 @@ public class Cadeteria
 
     public void AsignarCadeteAPedido(int idCadete, int nroPedido)
     {
-        var pedidoAsignar = Pedidos.Where(p => p.Nro == nroPedido).ToList();
-        var cadeteAAsignar = Cadetes.Where(c => c.Id == idCadete).ToList();
-        pedidoAsignar[0].Cadete = cadeteAAsignar[0];
+        var pedidoAsignar = Pedidos.Find(p => p.Nro == nroPedido);
+        var cadeteAAsignar = Cadetes.Find(c => c.Id == idCadete);
+        pedidoAsignar.Cadete = cadeteAAsignar;
     }
 
-    public Cadete AsignarPedidos(Pedido pedido)
+    public Cadete AsignarPedidos(int nroPedido)
     {
         int menosPedidos = 100;
         Cadete cadeteMenosPedidos = cadetes[0];
@@ -56,17 +69,17 @@ public class Cadeteria
                 menosPedidos = cantEntregada;
             }
         }
-        AsignarCadeteAPedido(cadeteMenosPedidos.Id, pedido.Nro);
+        AsignarCadeteAPedido(cadeteMenosPedidos.Id, nroPedido);
         return cadeteMenosPedidos;
     }
 
     public Cadete ReasignarPedidos(int nro)
     {
-        var pedidoAReasignar = Pedidos.Where(p => p.Nro == nro && p.Estado != Estados.Entregado && p.Cadete != null).ToList();
+        var pedidoAReasignar = Pedidos.Find(p => p.Nro == nro && p.Estado != Estados.Entregado && p.Cadete != null);
         Cadete cadeteMenosPedidos = null;
-        if (pedidoAReasignar.Count != 0)
+        if (pedidoAReasignar != null)
         {
-            var cadetesDisponibles = cadetes.Where(c => c != pedidoAReasignar[0].Cadete).ToList();
+            var cadetesDisponibles = cadetes.Where(c => c != pedidoAReasignar.Cadete).ToList();
             int menosPedidos = int.MaxValue;
             cadeteMenosPedidos = cadetesDisponibles[0];
             foreach (var cadete in cadetesDisponibles)
@@ -79,52 +92,29 @@ public class Cadeteria
                     menosPedidos = cantEntregada;
                 }
             }
-            AsignarCadeteAPedido(cadeteMenosPedidos.Id, pedidoAReasignar[0].Nro);
-        } else
-        {
-            Console.WriteLine("El número ingresado no se corresponde con ningún pedido");
+            AsignarCadeteAPedido(cadeteMenosPedidos.Id, pedidoAReasignar.Nro);
         }
 
         return cadeteMenosPedidos;
     }
 
-    public void CambiarEstadoDelPedido(int nro)
+    public bool CambiarEstadoDelPedido(int nro, int estado)
     {
-        var pedidosConNro = Pedidos.Where(p => p.Nro == nro).ToList();
-        if (pedidosConNro.Count != 0)
+        var pedidoConNro = Pedidos.Find(p => p.Nro == nro);
+        var success = false;
+        if (pedidoConNro != null)
         {
-            Menu menuDeSeleccion = new Menu("Seleccione el estado al que desea cambiar el pedido:", ["En camino", "Entregado"]);
-            int seleccion = menuDeSeleccion.MenuDisplay();
-            switch (seleccion)
+            switch (estado)
             {
                 case 0:
-                    pedidosConNro[0].Estado = Estados.EnCamino;
+                    pedidoConNro.Estado = Estados.EnCamino;
                     break;
                 case 1:
-                    pedidosConNro[0].Estado = Estados.Entregado;
+                    pedidoConNro.Estado = Estados.Entregado;
                     break;
             }
-        }else
-        {
-            Console.WriteLine("El número ingresado no se corresponde con ningún pedido asignado."); 
-            Console.WriteLine("Presiona cualquier tecla para continuar.");
-            Console.ReadKey();
+            success = true;
         }
-
-    }
-
-    public void MostrarInforme()
-    {
-        float totalEnvios = 0;
-        Console.WriteLine("Informe de los cadetes:");
-        foreach (var cadete in cadetes)
-        {
-            Console.WriteLine($"Nombre: {cadete.Nombre} || Cantidad de pedidos realizados: {CantEntregasCadete(cadete.Id)} || Monto ganado: ${JornalACobrar(cadete.Id)}");
-            totalEnvios = totalEnvios + CantEntregasCadete(cadete.Id);
-        }
-        float promedioEnviosXCadete = totalEnvios/(float)cadetes.Count;
-        Console.WriteLine("\nInforme general:");
-        Console.WriteLine($"Cantidad total de envios: {totalEnvios}");
-        Console.WriteLine($"Promedio de envios por cadete: {promedioEnviosXCadete}");
+        return success;
     }
 }

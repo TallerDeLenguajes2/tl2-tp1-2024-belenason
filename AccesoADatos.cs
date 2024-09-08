@@ -38,7 +38,7 @@ public class AccesoCSV : AccesoADatos
         string[] lineas = File.ReadAllLines(ruta);
         var datos = lineas[0].Split(';');
 
-        Cadeteria cadeteria = new Cadeteria(datos[0], datos[1], new List<Cadete>());
+        Cadeteria cadeteria = new Cadeteria(datos[0], datos[1]);
 
         return cadeteria;
     }
